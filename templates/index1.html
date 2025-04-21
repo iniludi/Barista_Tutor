@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Barista Tutor</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Aleo:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        .navbar-custom {
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+        .navbar-custom .navbar-brand {
+            text-align: center;
+            font-family: 'Aleo', serif;
+            font-size: 2.5rem;
+            color: white !important;
+        }
+        .navbar-custom .navbar-brand:hover,
+        .navbar-custom .navbar-nav .nav-link:hover {
+            color: #ffcc00 !important;
+        }
+        .navbar-custom .navbar-nav .nav-link {
+            font-family: 'Aleo', serif;
+            color: #ffffff !important;
+        }
+        body {
+            padding-top: 70px;
+            background-image: url("{{ url_for('static', filename='images/coffee3.jpg') }}");
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: white;
+            font-family: Aleo, serif;
+        }
+        .main-container {
+            margin-top: 40px;
+        }
+        .left-container,
+        .right-container {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        select, textarea {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 5px;
+            border: none;
+        }
+        button {
+            background-color: #ffcc00;
+            border: none;
+            padding: 10px 20px;
+            margin-top: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            color: black;
+        }
+        button:hover {
+            background-color: #ff9900;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-custom fixed-top">
+        <div class="container-fluid justify-content-center">
+            <a class="navbar-brand" href="#">B A R I S T A - T U T O R ☕</a>
+        </div>
+    </nav>
+
+    <div class="container main-container">
+        <div class="row">
+            <!-- Left Column -->
+            <div class="col-md-6">
+                <div class="left-container">
+                    <h2>Choose Your Learning Preferences</h2>
+                    <label for="topic" class="form-label">What do you want to learn?</label>
+                    <select id="topic" class="form-select" onchange="updateSubtopics()">
+                        <option value="">-- Select Topic --</option>
+                        <option value="brewing">Brewing</option>
+                        <option value="espresso">Espresso</option>
+                        <option value="milk_steaming">Milk Steaming</option>
+                        <option value="latte_art">Latte Art</option>
+                        <option value="grinding">Grinding</option>
+                    </select>
+                    <br>
+                    <label for="difficulty" class="form-label">Select Difficulty Level:</label>
+                    <select id="difficulty" class="form-select" onchange="loadQuestions()">
+                        <option value="">-- Select Difficulty --</option>
+                        <option value="easy">Easy</option>
+                        <option value="medium">Medium</option>
+                        <option value="hard">Hard</option>
+                    </select>
+                    <br>
+                    <label for="subtopic" class="form-label">Select Subtopic:</label>
+                    <select id="subtopic" class="form-select" onchange="loadQuestions()">
+                        <option value="">-- Select Subtopic --</option>
+                    </select>
+                    <br>
+                    <div id="topic-description" class="mt-4">
+                        <p>Select a topic to learn more about it!</p>
+                    </div>
+                    <div id="subtopic-description" class="mt-4">
+                        <p>Select a subtopic to learn more about it!</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div class="col-md-6">
+                <div class="right-container">
+                    <h2>Quiz Section</h2>
+                    <div id="question-container" style="display:none;">
+                        <label for="question" class="form-label">Select a Question:</label>
+                        <select id="question" class="form-select"></select>
+                        <br>
+                        <label for="answer" class="form-label">Your Answer:</label>
+                        <textarea id="answer" rows="4" class="form-control"></textarea>
+                        <br>
+                        <button onclick="submitAnswer()">Submit Answer</button>
+                        <div id="feedback-section" style="display: none;">
+                            <h2 class="mt-4">Feedback:</h2>
+                            <p id="feedback"></p>
+                            <div id="sources-container" class="mt-4">
+                                <h3>Learn More:</h3>
+                                <ul id="learning-sources" style="list-style-type: disc; padding-left: 20px;"></ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const subtopics = {
+            'brewing': ['french_press', 'pour_over'],
+            'espresso': ['espresso_shot', 'espresso_machine'],
+            'milk_steaming': ['milk_basics', 'foam_consistency'],
+            'latte_art': ['basic_pours', 'advanced_techniques'],
+            'grinding': ['grind_basics', 'grind_consistency']
+        };
+
+        function updateSubtopics() {
+            const topic = document.getElementById("topic").value;
+            const subtopicSelect = document.getElementById("subtopic");
+            subtopicSelect.innerHTML = "<option value=''>-- Select Subtopic --</option>";
+
+            if (subtopics[topic]) {
+                subtopics[topic].forEach(sub => {
+                    let option = document.createElement("option");
+                    option.value = sub;
+                    option.textContent = sub.replace('_', ' ').toUpperCase();
+                    subtopicSelect.appendChild(option);
+                });
+            }
+
+            document.getElementById("question-container").style.display = "none";
+            document.getElementById("topic-description").innerHTML = "<p>Loading topic info...</p>";
+            document.getElementById("subtopic-description").innerHTML = "<p>Select a subtopic to learn more about it!</p>";
+        }
+
+        async function loadQuestions() {
+            let topic = document.getElementById("topic").value;
+            let difficulty = document.getElementById("difficulty").value;
+            let subtopic = document.getElementById("subtopic").value;
+
+            if (!topic || !difficulty || !subtopic) return;
+
+            document.getElementById("question-container").style.display = "none";
+            document.getElementById("topic-description").innerHTML = "<p>Loading...</p>";
+            document.getElementById("subtopic-description").innerHTML = "<p>Loading...</p>";
+
+            const response = await fetch(`/get_questions?topic=${topic}&difficulty=${difficulty}&subtopic=${subtopic}`);
+            const data = await response.json();
+
+            document.getElementById("topic-description").innerHTML = `<p>${data.description || "No topic description available."}</p>`;
+            document.getElementById("subtopic-description").innerHTML = `<p>${data.subtopic_description || "No subtopic description available."}</p>`;
+
+            if (data.questions.length > 0) {
+                let questionSelect = document.getElementById("question");
+                questionSelect.innerHTML = "";
+                data.questions.forEach(q => {
+                    let option = document.createElement("option");
+                    option.value = q;
+                    option.textContent = q;
+                    questionSelect.appendChild(option);
+                });
+                document.getElementById("question-container").style.display = "block";
+            }
+        }
+
+        async function submitAnswer() {
+            let question = document.getElementById("question").value;
+            let answer = document.getElementById("answer").value;
+            let difficulty = document.getElementById("difficulty").value;
+            let topic = document.getElementById("topic").value;
+
+            const response = await fetch('/evaluate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ question, answer, difficulty, topic })
+            });
+
+            const data = await response.json();
+            document.getElementById("feedback").innerText = data.feedback;
+            document.getElementById("feedback-section").style.display = "block";
+
+            const sourcesList = document.getElementById("learning-sources");
+            sourcesList.innerHTML = "";
+            if (data.sources && data.sources.length > 0) {
+                data.sources.forEach(link => {
+                    let li = document.createElement("li");
+                    li.innerHTML = `<a href="${link}" target="_blank">${link}</a>`;
+                    sourcesList.appendChild(li);
+                });
+            }
+        }
+    </script>
+</body>
+</html>
